@@ -2,7 +2,7 @@ import os
 import streamlit as object
 import streamlit as st
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
@@ -19,14 +19,13 @@ os.environ["GOOGLE_API_KEY"] = "GOOGLE_API_KEY"
 # 2. Dùng @st.cache_resource để NẠP MODEL ĐÚNG 1 LẦN (Giải quyết triệt để lỗi chạy lâu)
 @st.cache_resource
 def init_rag_system():
-    DB_DIR = "./chroma_db"
-    # Nạp embedding
+    DB_DIR = "./faiss_db" # Đổi tên đường dẫn sang thư mục FAISS
     embedding_model = HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-base")
-    # Nạp DB
-    vector_db = Chroma(persist_directory=DB_DIR, embedding_function=embedding_model)
+    
+    # Nạp FAISS DB thay vì Chroma (Thêm tham số allow_dangerous_deserialization=True để chạy trên Cloud)
+    vector_db = FAISS.load_local(DB_DIR, embedding_model, allow_dangerous_deserialization=True)
     retriever = vector_db.as_retriever(search_kwargs={"k": 2})
     
-    # Cấu hình Prompt
     system_prompt = (
         "Bạn là một trợ lý luật sư chuyên nghiệp tại Việt Nam. "
         "Hãy sử dụng các đoạn văn bản luật được cung cấp sau đây để trả lời câu hỏi của người dùng. "
@@ -37,7 +36,6 @@ def init_rag_system():
         ("system", system_prompt),
         ("human", "{input}"),
     ])
-    
     return retriever, prompt
 
 retriever, prompt = init_rag_system()
