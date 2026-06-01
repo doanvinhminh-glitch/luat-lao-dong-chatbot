@@ -66,8 +66,15 @@ if user_query := st.chat_input("Nhập câu hỏi của bạn về luật lao đ
         message_placeholder = st.empty()
         message_placeholder.markdown("⏳ Thưa bạn, tôi đang tra cứu và phân tích điều luật...")
         
-        # Gọi mô hình chính (3.5-flash)
-        llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0.2)
+        # LẤY API KEY TRỰC TIẾP TỪ SECRETS CỦA STREAMLIT
+        api_key = st.secrets["GOOGLE_API_KEY"]
+        
+        # CẤU HÌNH MÔ HÌNH CHÍNH (Truyền API Key trực tiếp để tránh lỗi môi trường)
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-3.5-flash", 
+            temperature=0.2,
+            google_api_key=api_key
+        )
         rag_chain = (
             {"context": retriever | format_docs, "input": RunnablePassthrough()}
             | prompt | llm | StrOutputParser()
@@ -76,14 +83,19 @@ if user_query := st.chat_input("Nhập câu hỏi của bạn về luật lao đ
         try:
             response = rag_chain.invoke(user_query)
         except Exception as e:
-            # Nếu nghẽn mạch (503), tự động chuyển sang bản dự phòng 1.5-flash
-            fallback_llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", temperature=0.2)
+            # Nếu nghẽn mạch hoặc lỗi, chuyển sang cấu hình dự phòng
+            # CẤU HÌNH MÔ HÌNH DỰ PHÒNG (Truyền API Key trực tiếp)
+            fallback_llm = ChatGoogleGenerativeAI(
+                model="gemini-3.1-flash-lite", 
+                temperature=0.2,
+                google_api_key=api_key
+            )
             fallback_chain = (
                 {"context": retriever | format_docs, "input": RunnablePassthrough()}
                 | prompt | fallback_llm | StrOutputParser()
             )
             response = fallback_chain.invoke(user_query)
-            response = "⚠️ *(Hệ thống đang dùng máy chủ dự phòng)*\n\n" + response
+            response = "⚠️ *(Hệ thống đang dùng máy chủ dự phòng Flash-Lite)*\n\n" + response
         
         # Hiển thị câu trả lời lên giao diện web
         message_placeholder.markdown(response)
