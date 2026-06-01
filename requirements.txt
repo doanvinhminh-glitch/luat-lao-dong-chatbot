@@ -5,3 +5,4 @@ langchain-community
 langchain-google-genai
 chromadb
 sentence-transformers
+protobuf==4.25.3
