@@ -3,6 +3,6 @@ langchain
 langchain-core
 langchain-community
 langchain-google-genai
-chromadb
+faiss-cpu
 sentence-transformers
 torchvision
