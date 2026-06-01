@@ -1,5 +1,4 @@
 import os
-os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 import streamlit as object
 import streamlit as st
 from langchain_community.embeddings import HuggingFaceEmbeddings
