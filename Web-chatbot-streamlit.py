@@ -24,7 +24,7 @@ def init_rag_system():
     
     # Nạp FAISS DB thay vì Chroma (Thêm tham số allow_dangerous_deserialization=True để chạy trên Cloud)
     vector_db = FAISS.load_local(DB_DIR, embedding_model, allow_dangerous_deserialization=True)
-    retriever = vector_db.as_retriever(search_kwargs={"k": 4})
+    retriever = vector_db.as_retriever(search_kwargs={"k": 7})
     
     system_prompt = (
         "Bạn là một trợ lý luật sư chuyên nghiệp tại Việt Nam. "
