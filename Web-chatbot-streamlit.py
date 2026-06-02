@@ -17,7 +17,7 @@ selected_filter = st.sidebar.selectbox(
     ["Tất cả", "Chương II: Hợp đồng lao động", "Chương VII: Thời giờ làm việc, nghỉ ngơi", "Chương XII: Kỷ luật lao động"]
 )
 
-st.title("⚖️ Trợ Lý Ảo Tư Vấn Luật Lao Động 2019")
+st.title("⚖️ Trợ Lý Ảo Tư Vấn Luật Lao Động 2019 Th khon Thinh HG")
 st.caption("Đồ án tốt nghiệp Khoa học Máy tính - Hệ thống RAG nâng cao")
 
 # 1. ĐIỀN THẲNG KEY CỦA BẠN VÀO ĐÂY ĐỂ CHẠY TRÊN VS CODE (GIỐNG CODE CŨ)
