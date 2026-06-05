@@ -21,7 +21,7 @@ st.title("⚖️ Trợ Lý Ảo Tư Vấn Luật Lao Động 2019")
 st.caption("Đồ án tốt nghiệp Khoa học Máy tính - Hệ thống RAG nâng cao")
 
 # 1. ĐIỀN THẲNG KEY CỦA BẠN VÀO ĐÂY ĐỂ CHẠY TRÊN VS CODE (GIỐNG CODE CŨ)
-MY_GOOGLE_API_KEY = "GOOGLE_API_KEY"
+MY_GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 
 # 2. Dùng @st.cache_resource để NẠP MODEL ĐÚNG 1 LẦN 
 @st.cache_resource
