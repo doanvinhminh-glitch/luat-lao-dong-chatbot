@@ -223,7 +223,7 @@ if active_query and active_query.strip():
                     source_name = doc.metadata.get("source", f"Phân đoạn luật thứ {idx+1}")
                     st.markdown(f"**[{idx+1}] Cơ sở tài liệu: {source_name}**")
                     st.caption(doc.page_content)
-                   st.markdown("---")
+                    st.markdown("---")
                     
        st.session_state.messages.append({"role": "assistant", "content": response, "sources": retrieved_docs})
         st.rerun()
