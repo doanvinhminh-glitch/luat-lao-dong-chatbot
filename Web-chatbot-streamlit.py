@@ -10,7 +10,7 @@ from langchain_core.output_parsers import StrOutputParser
 # --- CẤU HÌNH GIAO DIỆN WEB ---
 st.set_page_config(page_title="Trợ lý Luật Lao Động AI", page_icon="⚖️", layout="wide")
 
-# --- TÍNH NĂNG 3: BỘ LỌC CẤU HÌNH TOÀN BỘ 16 CHƯƠNG BỘ LUẬT LAO ĐỘNG 2019 ---
+# --- TÍNH NĂNG 1 : BỘ LỌC CẤU HÌNH TOÀN BỘ 16 CHƯƠNG BỘ LUẬT LAO ĐỘNG 2019 ---
 CHAPTER_MAPPING = {
     "Chương I: Quy định chung": (1, 10),
     "Chương II: Hợp đồng lao động": (11, 51),
@@ -38,7 +38,7 @@ selected_filter = st.sidebar.selectbox(
     ["Tất cả"] + list(CHAPTER_MAPPING.keys())
 )
 
-# --- TÍNH NĂNG NÂNG CẤP: DANH SÁCH 8 CÂU HỎI FAQ CHUẨN DOANH NGHIỆP ---
+# --- TÍNH NĂNG 2: DANH SÁCH 8 CÂU HỎI FAQ CHUẨN DOANH NGHIỆP ---
 st.sidebar.markdown("---")
 st.sidebar.subheader("💡 CÂU HỎI THƯỜNG GẶP (FAQ)")
 st.sidebar.markdown("Bấm nhanh các tình huống thực tế để trợ lý AI giải đáp:")
@@ -60,8 +60,7 @@ for faq in faq_questions:
         st.rerun()
 
 st.title("⚖️ Trợ Lý Ảo Tư Vấn Luật Lao Động 2019")
-st.caption("Đồ án tốt nghiệp Khoa học Máy tính - Hệ thống RAG nâng cao toàn diện 16 Chương")
-
+st.caption("Báo cáo thực tập tốt nghiệp - Giải pháp Chatbot AI hỗ trợ tra cứu Luật Lao động 2019 cho Doanh nghiệp")
 # 1. Quản lý API Key
 if "GOOGLE_API_KEY" in st.secrets:
     MY_GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
@@ -78,7 +77,7 @@ def init_rag_system():
 
 vector_db = init_rag_system()
 
-# --- TÍNH NĂNG 2: PROMPT HỘI THOẠI ---
+# --- TÍNH NĂNG 3: PROMPT HỘI THOẠI ---
 system_prompt = (
     "Bạn là một trợ lý luật sư chuyên nghiệp tại Việt Nam.\n"
     "Hãy sử dụng các đoạn văn bản luật được cung cấp và lịch sử cuộc trò chuyện dưới đây để trả lời câu hỏi của người dùng một cách logic, chính xác.\n"
@@ -140,7 +139,7 @@ for idx, message in enumerate(st.session_state.messages):
 
             st.feedback("thumbs", key=feedback_key, on_change=on_feedback_change)
 
-# --- CÁCH 1: HIỂN THỊ BẢNG KHO DỮ LIỆU PHẢN HỒI NGAY TRÊN SIDEBAR ---
+# --- HIỂN THỊ BẢNG KHO DỮ LIỆU PHẢN HỒI NGAY TRÊN SIDEBAR ---
 st.sidebar.markdown("---")
 with st.sidebar.expander("📊 Kho dữ liệu Phản hồi (HR Admin)"):
     if st.session_state.feedbacks:
@@ -209,7 +208,7 @@ if active_query and active_query.strip():
         
         message_placeholder.markdown(response)
         
-        # --- TÍNH NĂNG 1: HIỂN THỊ NGUỒN TRÍCH DẪN LUẬT ---
+        # --- TÍNH NĂNG 4: HIỂN THỊ NGUỒN TRÍCH DẪN LUẬT ---
         if retrieved_docs:
             with st.expander("📚 Xem các phân đoạn Luật gốc được hệ thống đối chiếu (Nguồn trích dẫn)"):
                 for idx, doc in enumerate(retrieved_docs):
