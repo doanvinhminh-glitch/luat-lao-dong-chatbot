@@ -39,6 +39,60 @@ selected_filter = st.sidebar.selectbox(
     "Chọn Chương cần tra cứu:",
     ["Tất cả"] + list(CHAPTER_MAPPING.keys())
 )
+# --- TÍNH NĂNG NÂNG CẤP: DANH SÁCH 8 CÂU HỎI FAQ CHUẨN DOANH NGHIỆP ---
+st.sidebar.markdown("---")
+st.sidebar.subheader("💡 CÂU HỎI THƯỜNG GẶP (FAQ)")
+st.sidebar.markdown("Bấm nhanh các tình huống thực tế để trợ lý AI giải đáp:")
+
+# Mảng chứa 8 câu hỏi kinh điển nhất tại nơi làm việc
+faq_questions = [
+    {
+        "icon": "⏱️", 
+        "label": "Thời gian thử việc tối đa?", 
+        "text": "Thời gian thử việc tối đa đối với trình độ đại học và các vị trí công việc khác được quy định là bao nhiêu ngày?"
+    },
+    {
+        "icon": "📜", 
+        "label": "Các loại hợp đồng lao động?", 
+        "text": "Theo Luật Lao động 2019 hiện hành thì có mấy loại hợp đồng lao động và quy định cụ thể của từng loại là gì?"
+    },
+    {
+        "icon": "🎁", 
+        "label": "Quy định về tiền thưởng Tết?", 
+        "text": "Doanh nghiệp có bắt buộc phải thưởng Tết cho người lao động không? Tiền thưởng Tết được quyết định dựa trên căn cứ nào?"
+    },
+    {
+        "icon": "💵", 
+        "label": "Lương tháng 13 tính thế nào?", 
+        "text": "Lương tháng 13 có phải là quy định bắt buộc trong luật không và cách tính khoản tiền này như thế nào?"
+    },
+    {
+        "icon": "💰", 
+        "label": "Lương làm thêm giờ ngày nghỉ?", 
+        "text": "Người lao động làm thêm giờ vào ngày nghỉ hằng tuần hoặc ngày lễ, tết thì được tính lương như thế nào?"
+    },
+    {
+        "icon": "🏖️", 
+        "label": "Số ngày nghỉ phép hằng năm?", 
+        "text": "Người lao động làm việc đủ năm thì được nghỉ bao nhiêu ngày phép năm hưởng nguyên lương?"
+    },
+    {
+        "icon": "🤰", 
+        "label": "Chế độ thai sản của lao động nữ?", 
+        "text": "Lao động nữ mang thai và sinh con được hưởng những quyền lợi, chế độ nghỉ ngơi và bảo vệ thai sản như thế nào?"
+    },
+    {
+        "icon": "❌", 
+        "label": "Hình thức kỷ luật sa thải?", 
+        "text": "Doanh nghiệp được phép áp dụng hình thức kỷ luật sa thải người lao động trong những trường hợp cụ thể nào?"
+    }
+]
+
+# Vòng lặp tự động tạo các nút bấm xếp dọc đẹp mắt trên Sidebar
+for faq in faq_questions:
+    if st.sidebar.button(f"{faq['icon']} {faq['label']}", use_container_width=True):
+        st.session_state.messages.append({"role": "user", "content": faq["text"]})
+        st.rerun()
 
 st.title("⚖️ Trợ Lý Ảo Tư Vấn Luật Lao Động 2019")
 st.caption("Đồ án tốt nghiệp Khoa học Máy tính - Hệ thống RAG nâng cao toàn diện 16 Chương")
