@@ -106,28 +106,29 @@ for idx, message in enumerate(st.session_state.messages):
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         
-        # --- TÍNH NĂNG MỚI: HIỂN THỊ NÚT ĐÁNH GIÁ CHO TIN NHẮN CỦA BOT ---
+        # Hiển thị nút đánh giá cho câu trả lời của Bot
         if message["role"] == "assistant" and idx > 0:
-            # Tạo một khóa (key) duy nhất cho mỗi câu trả lời dựa trên vị trí của nó
             feedback_key = f"fb_{idx}"
             
-            # Định nghĩa hàm xử lý khi người dùng bấm nút đánh giá
             def on_feedback_change(k=feedback_key, m_idx=idx):
                 score = st.session_state[k]
-                # Lưu thông tin đánh giá vào bộ nhớ tạm để sau này xuất báo cáo
                 st.session_state.feedbacks[k] = {
-                    "question": st.session_state.messages[m_idx-1]["content"],
-                    "answer": st.session_state.messages[m_idx]["content"],
-                    "rating": "👍 Hài lòng" if score == 1 else "👎 Chưa hài lòng"
+                    "Câu hỏi": st.session_state.messages[m_idx-1]["content"],
+                    "Câu trả lời của AI": st.session_state.messages[m_idx]["content"],
+                    "Đánh giá": "👍 Hài lòng" if score == 1 else "👎 Chưa hài lòng"
                 }
                 st.toast(f"Cảm ơn bạn đã đánh giá câu trả lời này!", icon="📝")
 
-            # Gọi thành phần giao diện Feedback của Streamlit
-            st.feedback(
-                "thumbs", 
-                key=feedback_key, 
-                on_change=on_feedback_change
-            )
+            st.feedback("thumbs", key=feedback_key, on_change=on_feedback_change)
+
+# --- CÁCH 1: HIỂN THỊ BẢNG KHO DỮ LIỆU PHẢN HỒI NGAY TRÊN SIDEBAR ---
+st.sidebar.markdown("---")
+with st.sidebar.expander("📊 Kho dữ liệu Phản hồi (HR Admin)"):
+    if st.session_state.feedbacks:
+        feedback_list = list(st.session_state.feedbacks.values())
+        st.data_editor(feedback_list, use_container_width=True)
+    else:
+        st.caption("Chưa có lượt đánh giá nào từ người dùng.")
 
 # --- BỘ ĐIỀU PHỐI LUỒNG XỬ LÝ CÂU HỎI ---
 user_query = st.chat_input("Nhập câu hỏi của bạn về luật lao động tại đây...")
@@ -139,20 +140,11 @@ if "faq_trigger" in st.session_state and st.session_state.faq_trigger is not Non
 elif user_query:
     active_query = user_query
 
-# 4. Chạy lõi xử lý RAG khi có câu hỏi
-if active_query:
+# 4. Chạy lõi xử lý RAG khi và chỉ khi active_query THỰC SỰ CÓ CHỮ (Không None, Không rỗng)
+if active_query and active_query.strip():
     with st.chat_message("user"):
         st.markdown(active_query)
     st.session_state.messages.append({"role": "user", "content": active_query})
-        # --- HIỂN THỊ KẾT QUẢ ĐÁNH GIÁ ĐỂ LẤY SỐ LIỆU BÁO CÁO ---
-st.sidebar.markdown("---")
-with st.sidebar.expander("📊 Kho dữ liệu Phản hồi (HR Admin)"):
-    if st.session_state.feedbacks:
-        # Chuyển Dictionary thành danh sách để hiển thị dạng bảng
-        feedback_list = list(st.session_state.feedbacks.values())
-        st.data_editor(feedback_list, use_container_width=True)
-    else:
-        st.caption("Chưa có lượt đánh giá nào từ người dùng.")
 
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
