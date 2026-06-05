@@ -47,7 +47,7 @@ faq_questions = [
     {"icon": "⏱️", "label": "Thời gian thử việc tối đa?", "text": "Thời gian thử việc tối đa đối với trình độ đại học và các vị trí công việc khác được quy định là bao nhiêu ngày?"},
     {"icon": "📜", "label": "Các loại hợp đồng lao động?", "text": "Theo Luật Lao động 2019 hiện hành thì có mấy loại hợp đồng lao động và quy định cụ thể của từng loại là gì?"},
     {"icon": "🎁", "label": "Quy định về tiền thưởng Tết?", "text": "Doanh nghiệp có bắt buộc phải thưởng Tết cho người lao động không? Tiền thưởng Tết được quyết định dựa trên căn cứ nào?"},
-    {"icon": "💵", "label": "Lương tháng 13 tính thế nào?", "text": "Lương tháng 13 có phải là quy định bắt buộc trong luật không và cách tính khoản tiền này như thế nào?"},
+   {"icon": "💵", "label": "Lương tháng 13 tính thế nào?", "text": "Khoản tiền thường được gọi là Lương tháng 13 bản chất có phải là quy định tiền thưởng bắt buộc trong Bộ luật Lao động không? Doanh nghiệp quyết định khoản này dựa trên căn cứ nào?"},
     {"icon": "💰", "label": "Lương làm thêm giờ ngày nghỉ?", "text": "Người lao động làm thêm giờ vào ngày nghỉ hằng tuần hoặc ngày lễ, tết thì được tính lương như thế nào?"},
     {"icon": "🏖️", "label": "Số ngày nghỉ phép hằng năm?", "text": "Người lao động làm việc đủ năm thì được nghỉ bao nhiêu ngày phép năm hưởng nguyên lương?"},
     {"icon": "🤰", "label": "Chế độ thai sản của lao động nữ?", "text": "Lao động nữ mang thai và sinh con được hưởng những quyền lợi, chế độ nghỉ ngơi và bảo vệ thai sản như thế nào?"},
@@ -220,3 +220,5 @@ if active_query and active_query.strip():
                     
         st.session_state.messages.append({"role": "assistant", "content": response})
         st.rerun()
+
+
