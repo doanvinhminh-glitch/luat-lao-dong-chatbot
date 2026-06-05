@@ -1,4 +1,5 @@
 import os
+import re
 import streamlit as st
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -21,7 +22,7 @@ st.title("⚖️ Trợ Lý Ảo Tư Vấn Luật Lao Động 2019")
 st.caption("Đồ án tốt nghiệp Khoa học Máy tính - Hệ thống RAG nâng cao")
 
 # 1. ĐIỀN THẲNG KEY CỦA BẠN VÀO ĐÂY ĐỂ CHẠY TRÊN VS CODE (GIỐNG CODE CŨ)
-MY_GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
+MY_GOOGLE_API_KEY = "GOOGLE_API_KEY"
 
 # 2. Dùng @st.cache_resource để NẠP MODEL ĐÚNG 1 LẦN 
 @st.cache_resource
@@ -69,20 +70,34 @@ if user_query := st.chat_input("Nhập câu hỏi của bạn về luật lao đ
         message_placeholder = st.empty()
         message_placeholder.markdown("⏳ Thưa bạn, tôi đang tra cứu và phân tích điều luật...")
         
-        # --- ĐOẠN THAY THẾ MỚI: TRUY VẤN RỘNG VÀ HẬU LỌC BẰNG PYTHON ---
-        # Tạm thời nâng k=15 để FAISS hốt được phổ dữ liệu rộng hơn, tránh sót điều luật
-        retriever = vector_db.as_retriever(search_kwargs={"k": 15})
+        # --- ĐOẠN THAY THẾ MỚI: TRUY VẤN RỘNG VÀ HẬU LỌC THEO SỐ ĐIỀU LUẬT ---
+        # Tạm thời nâng k=20 để lấy được phổ dữ liệu rộng nhất từ FAISS
+        retriever = vector_db.as_retriever(search_kwargs={"k": 20})
         retrieved_docs = retriever.invoke(user_query)
         
-        # Tiến hành bóc tách và lọc dữ liệu dựa trên lựa chọn Sidebar
+        # Tiến hành bóc tách số Điều bằng RegEx để lọc dữ liệu theo Chương
         if selected_filter != "Tất cả":
-            chuong_keyword = selected_filter.split(":")[0].strip() # Lấy ra chữ "Chương II", "Chương XII"...
             filtered_docs = []
             for doc in retrieved_docs:
-                # Nếu từ khóa Chương nằm trong nội dung luật hoặc nằm trong trường chuong của metadata thì giữ lại
-                if (chuong_keyword in doc.page_content) or (chuong_keyword in doc.metadata.get("chuong", "")):
-                    filtered_docs.append(doc)
-            # Chỉ lấy tối đa 7 đoạn tốt nhất thỏa mãn bộ lọc để gửi cho Gemini
+                # Tìm chữ "Điều X" (không phân biệt hoa thường) trong đoạn văn bản luật
+                article_match = re.search(r"[Đđ]iều\s+(\d+)", doc.page_content)
+                if article_match:
+                    article_num = int(article_match.group(1)) # Ép kiểu sang số nguyên để so sánh phạm vi
+                    
+                    # Kiểm tra số điều có nằm đúng Chương quy định hay không
+                    if selected_filter == "Chương II: Hợp đồng lao động" and (11 <= article_num <= 51):
+                        filtered_docs.append(doc)
+                    elif selected_filter == "Chương VII: Thời giờ làm việc, nghỉ ngơi" and (105 <= article_num <= 116):
+                        filtered_docs.append(doc)
+                    elif selected_filter == "Chương XII: Kỷ luật lao động" and (117 <= article_num <= 131):
+                        filtered_docs.append(doc)
+                else:
+                    # Phòng hờ nếu đoạn văn bản chứa tiêu đề chương thuần túy
+                    chuong_keyword = selected_filter.split(":")[0].strip()
+                    if chuong_keyword in doc.page_content:
+                        filtered_docs.append(doc)
+                        
+            # Lấy tối đa 7 đoạn tốt nhất thỏa mãn phạm vi Chương
             retrieved_docs = filtered_docs[:7]
             
         # Ép các đoạn văn bản hợp lệ thành chuỗi context
