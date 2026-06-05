@@ -7,22 +7,47 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-# --- CẤU HÌNH GIAO DIỆN WEB (Bản rộng - Wide để chứa Sidebar) ---
+# --- CẤU HÌNH GIAO DIỆN WEB ---
 st.set_page_config(page_title="Trợ lý Luật Lao Động AI", page_icon="⚖️", layout="wide")
 
-# --- TÍNH NĂNG 3: BỘ LỌC SIDEBAR (METADATA FILTERING) ---
+# --- TÍNH NĂNG 3: BỘ LỌC CẤU HÌNH TOÀN BỘ 16 CHƯƠNG BỘ LUẬT LAO ĐỘNG 2019 ---
+# Gom toàn bộ dữ liệu cấu hình phạm vi điều của các chương vào Dictionary
+CHAPTER_MAPPING = {
+    "Chương I: Quy định chung": (1, 10),
+    "Chương II: Hợp đồng lao động": (11, 51),
+    "Chương III: Giáo dục nghề nghiệp và phát triển kỹ năng nghề": (52, 60),
+    "Chương IV: Đối thoại tại nơi làm việc, thương lượng tập thể, thỏa ước lao động tập thể": (61, 89),
+    "Chương V: Tiền lương": (90, 104),
+    "Chương VI: Thời giờ làm việc, thời giờ nghỉ ngơi": (105, 116),
+    "Chương VII: An toàn, vệ sinh lao động": (117, 122),
+    "Chương VIII: Kỷ luật lao động, trách nhiệm vật chất": (123, 134),
+    "Chương IX: Quy định riêng đối với lao động nữ và bảo đảm bình đẳng giới": (135, 142),
+    "Chương X: Quy định riêng đối với lao động chưa thành niên và một số lao động khác": (143, 167),
+    "Chương XI: Bảo hiểm xã hội, bảo hiểm y tế, bảo hiểm thất nghiệp": (168, 171),
+    "Chương XII: Tổ chức đại diện người lao động tại cơ sở": (172, 178),
+    "Chương XIII: Giải quyết tranh chấp lao động": (179, 211),
+    "Chương XIV: Quản lý nhà nước về lao động": (212, 217),
+    "Chương XV: Thanh tra lao động, xử phạt vi phạm pháp luật về lao động": (218, 219),
+    "Chương XVI: Điều khoản thi hành": (220, 221)
+}
+
 st.sidebar.header("⚖️ BỘ LỌC NÂNG CAO")
-st.sidebar.markdown("Giới hạn phạm vi tìm kiếm dữ liệu để tăng độ chính xác.")
+st.sidebar.markdown("Giới hạn phạm vi tìm kiếm dữ liệu theo chương.")
+
+# Tự động nạp toàn bộ danh sách Chương từ Dictionary vào Selectbox
 selected_filter = st.sidebar.selectbox(
     "Chọn Chương cần tra cứu:",
-    ["Tất cả", "Chương II: Hợp đồng lao động", "Chương VII: Thời giờ làm việc, nghỉ ngơi", "Chương XII: Kỷ luật lao động"]
+    ["Tất cả"] + list(CHAPTER_MAPPING.keys())
 )
 
 st.title("⚖️ Trợ Lý Ảo Tư Vấn Luật Lao Động 2019")
-st.caption("Đồ án tốt nghiệp Khoa học Máy tính - Hệ thống RAG nâng cao")
+st.caption("Đồ án tốt nghiệp Khoa học Máy tính - Hệ thống RAG nâng cao toàn diện 16 Chương")
 
-# 1. ĐIỀN THẲNG KEY CỦA BẠN VÀO ĐÂY ĐỂ CHẠY TRÊN VS CODE (GIỐNG CODE CŨ)
-MY_GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
+# 1. Quản lý API Key (Tự động thích ứng linh hoạt giữa Local và Cloud)
+if "GOOGLE_API_KEY" in st.secrets:
+    MY_GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
+else:
+    MY_GOOGLE_API_KEY = "GOOGLE_API_KEY" # Điền key thật của bạn tại đây khi test Local trên VS Code
 
 # 2. Dùng @st.cache_resource để NẠP MODEL ĐÚNG 1 LẦN 
 @st.cache_resource
@@ -50,7 +75,7 @@ prompt = ChatPromptTemplate.from_messages([
 # 3. Quản lý và hiển thị lịch sử trò chuyện (Chat History) trên giao diện
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "assistant", "content": "Xin chào! Tôi là Trợ lý AI được huấn luyện dựa trên Luật Lao động 2019. Bạn cần tôi tư vấn điều gì?"}
+        {"role": "assistant", "content": "Xin chào! Tôi là Trợ lý AI được huấn luyện dựa trên toàn bộ 16 chương của Luật Lao động 2019. Bạn cần tôi tư vấn điều gì?"}
     ]
 
 # Hiển thị các tin nhắn cũ ra màn hình
@@ -70,52 +95,44 @@ if user_query := st.chat_input("Nhập câu hỏi của bạn về luật lao đ
         message_placeholder = st.empty()
         message_placeholder.markdown("⏳ Thưa bạn, tôi đang tra cứu và phân tích điều luật...")
         
-        # --- ĐOẠN THAY THẾ MỚI: TRUY VẤN RỘNG VÀ HẬU LỌC THEO SỐ ĐIỀU LUẬT ---
-        # Tạm thời nâng k=20 để lấy được phổ dữ liệu rộng nhất từ FAISS
-        retriever = vector_db.as_retriever(search_kwargs={"k": 20})
+        # Nâng cấu hình k=25 để FAISS quét rộng rãi, bao quát được nhiều chương hơn
+        retriever = vector_db.as_retriever(search_kwargs={"k": 25})
         retrieved_docs = retriever.invoke(user_query)
         
-        # Tiến hành bóc tách số Điều bằng RegEx để lọc dữ liệu theo Chương
+        # --- THUẬT TOÁN HẬU LỌC THÔNG MINH THEO TỪNG CHƯƠNG TỰ ĐỘNG ---
         if selected_filter != "Tất cả":
+            start_art, end_art = CHAPTER_MAPPING[selected_filter] # Lấy dải phạm vi (Ví dụ: 11 và 51)
             filtered_docs = []
+            
             for doc in retrieved_docs:
-                # Tìm chữ "Điều X" (không phân biệt hoa thường) trong đoạn văn bản luật
                 article_match = re.search(r"[Đđ]iều\s+(\d+)", doc.page_content)
                 if article_match:
-                    article_num = int(article_match.group(1)) # Ép kiểu sang số nguyên để so sánh phạm vi
-                    
-                    # Kiểm tra số điều có nằm đúng Chương quy định hay không
-                    if selected_filter == "Chương II: Hợp đồng lao động" and (11 <= article_num <= 51):
-                        filtered_docs.append(doc)
-                    elif selected_filter == "Chương VII: Thời giờ làm việc, nghỉ ngơi" and (105 <= article_num <= 116):
-                        filtered_docs.append(doc)
-                    elif selected_filter == "Chương XII: Kỷ luật lao động" and (117 <= article_num <= 131):
+                    article_num = int(article_match.group(1))
+                    # Kiểm tra xem số điều bóc tách được có nằm trong dải điều của Chương đang chọn không
+                    if start_art <= article_num <= end_art:
                         filtered_docs.append(doc)
                 else:
-                    # Phòng hờ nếu đoạn văn bản chứa tiêu đề chương thuần túy
+                    # Phương án dự phòng: Quét từ khóa tên Chương thuần túy
                     chuong_keyword = selected_filter.split(":")[0].strip()
                     if chuong_keyword in doc.page_content:
                         filtered_docs.append(doc)
                         
-            # Lấy tối đa 7 đoạn tốt nhất thỏa mãn phạm vi Chương
             retrieved_docs = filtered_docs[:7]
             
-        # Ép các đoạn văn bản hợp lệ thành chuỗi context
         context_text = "\n\n".join(doc.page_content for doc in retrieved_docs)
-        # --- KẾT THÚC ĐOẠN CẢI TIẾN ---
         
         # ĐÓNG GÓI LỊCH SỬ CHAT (Lấy các câu thoại cũ làm ngữ cảnh)
         history_text = ""
-        for m in st.session_state.messages[-5:-1]: # Lấy tối đa 4 câu thoại gần nhất
+        for m in st.session_state.messages[-5:-1]:
             history_text += f"{m['role'].upper()}: {m['content']}\n"
         
-        # Gọi mô hình và truyền trực tiếp biến MY_GOOGLE_API_KEY ở dòng 24 vào
+        # Khởi tạo chuỗi xích xử lý LLM
         chain = prompt | ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0.2, google_api_key=MY_GOOGLE_API_KEY) | StrOutputParser()
         
         try:
             response = chain.invoke({"context": context_text, "chat_history": history_text, "input": user_query})
         except Exception as e:
-            # Nếu nghẽn mạch (503), tự động chuyển sang bản dự phòng 3.1-flash-lite
+            # Cơ chế chịu lỗi tự động chuyển sang máy chủ dự phòng
             fallback_llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", temperature=0.2, google_api_key=MY_GOOGLE_API_KEY)
             fallback_chain = prompt | fallback_llm | StrOutputParser()
             response = fallback_chain.invoke({"context": context_text, "chat_history": history_text, "input": user_query})
