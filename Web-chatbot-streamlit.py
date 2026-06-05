@@ -31,7 +31,7 @@ CHAPTER_MAPPING = {
 }
 
 st.sidebar.header("⚖️ BỘ LỌC NÂNG CAO")
-st.sidebar.markdown("⚠️ **Lưu ý:** Nếu sử dụng các nút bấm **FAQ nhanh** hoặc hỏi câu hỏi chương khác, vui lòng để bộ lọc là **'Tất cả'** để tránh bị chặn dữ liệu.")
+st.sidebar.markdown("⚠️ **Lưu ý:** Nếu sử dụng các nút **FAQ nhanh**, vui lòng để bộ lọc là **'Tất cả'** để tránh bị chặn dữ liệu.")
 
 selected_filter = st.sidebar.selectbox(
     "Chọn Chương cần tra cứu:",
@@ -54,10 +54,9 @@ faq_questions = [
     {"icon": "❌", "label": "Hình thức kỷ luật sa thải?", "text": "Doanh nghiệp được phép áp dụng hình thức kỷ luật sa thải người lao động trong những trường hợp cụ thể nào?"}
 ]
 
-# Cơ chế bẫy sự kiện thông minh khi bấm FAQ
 for faq in faq_questions:
     if st.sidebar.button(f"{faq['icon']} {faq['label']}", use_container_width=True):
-        st.session_state.faq_trigger = faq["text"] # Đặt biến cờ hiệu báo có câu hỏi FAQ
+        st.session_state.faq_trigger = faq["text"]
         st.rerun()
 
 st.title("⚖️ Trợ Lý Ảo Tư Vấn Luật Lao Động 2019")
@@ -98,31 +97,54 @@ if "messages" not in st.session_state:
         {"role": "assistant", "content": "Xin chào! Tôi là Trợ lý AI được huấn luyện dựa trên toàn bộ 16 chương của Luật Lao động 2019. Bạn cần tôi tư vấn điều gì?"}
     ]
 
+# Khởi tạo bộ lưu trữ điểm đánh giá feedback
+if "feedbacks" not in st.session_state:
+    st.session_state.feedbacks = {}
+
 # Hiển thị các tin nhắn cũ ra màn hình
-for message in st.session_state.messages:
+for idx, message in enumerate(st.session_state.messages):
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
+        
+        # --- TÍNH NĂNG MỚI: HIỂN THỊ NÚT ĐÁNH GIÁ CHO TIN NHẮN CỦA BOT ---
+        if message["role"] == "assistant" and idx > 0:
+            # Tạo một khóa (key) duy nhất cho mỗi câu trả lời dựa trên vị trí của nó
+            feedback_key = f"fb_{idx}"
+            
+            # Định nghĩa hàm xử lý khi người dùng bấm nút đánh giá
+            def on_feedback_change(k=feedback_key, m_idx=idx):
+                score = st.session_state[k]
+                # Lưu thông tin đánh giá vào bộ nhớ tạm để sau này xuất báo cáo
+                st.session_state.feedbacks[k] = {
+                    "question": st.session_state.messages[m_idx-1]["content"],
+                    "answer": st.session_state.messages[m_idx]["content"],
+                    "rating": "👍 Hài lòng" if score == 1 else "👎 Chưa hài lòng"
+                }
+                st.toast(f"Cảm ơn bạn đã đánh giá câu trả lời này!", icon="📝")
 
-# --- CẢI TIẾN: BỘ ĐIỀU PHỐI LUỒNG XỬ LÝ CÂU HỎI ---
+            # Gọi thành phần giao diện Feedback của Streamlit
+            st.feedback(
+                "thumbs", 
+                key=feedback_key, 
+                on_change=on_feedback_change
+            )
+
+# --- BỘ ĐIỀU PHỐI LUỒNG XỬ LÝ CÂU HỎI ---
 user_query = st.chat_input("Nhập câu hỏi của bạn về luật lao động tại đây...")
 active_query = None
 
-# Nếu có tín hiệu từ nút FAQ, bốc câu hỏi từ FAQ ra giải quyết trước
 if "faq_trigger" in st.session_state and st.session_state.faq_trigger is not None:
     active_query = st.session_state.faq_trigger
-    st.session_state.faq_trigger = None # Xóa cờ hiệu ngay sau khi bốc để tránh lặp vô hạn
-# Nếu người dùng tự gõ vào chat_input
+    st.session_state.faq_trigger = None
 elif user_query:
     active_query = user_query
 
-# 4. Chạy lõi xử lý RAG khi có câu hỏi xuất hiện từ 1 trong 2 nguồn
+# 4. Chạy lõi xử lý RAG khi có câu hỏi
 if active_query:
-    # Hiển thị câu hỏi lên màn hình và lưu vào bộ nhớ
     with st.chat_message("user"):
         st.markdown(active_query)
     st.session_state.messages.append({"role": "user", "content": active_query})
 
-    # AI phản hồi
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
         message_placeholder.markdown("⏳ Thưa bạn, tôi đang tra cứu và phân tích điều luật...")
@@ -177,4 +199,4 @@ if active_query:
                     st.markdown("---")
                     
         st.session_state.messages.append({"role": "assistant", "content": response})
-        st.rerun() # Đảm bảo giao diện đồng bộ mượt mà sau khi cập nhật phản hồi
+        st.rerun()
