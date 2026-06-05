@@ -60,8 +60,7 @@ for faq in faq_questions:
         st.rerun()
 
 st.title("⚖️ Trợ Lý Ảo Tư Vấn Luật Lao Động 2019")
-st.caption("Báo cáo thực tập tốt nghiệp - Giải pháp Chatbot AI hỗ trợ tra cứu Luật Lao động 2019 cho Doanh nghiệp")
-# 1. Quản lý API Key
+st.caption("Báo cáo thực tập tốt nghiệp - Trợ lý ảo AI hỗ trợ quản trị nhân sự và tra cứu Luật Lao động")# 1. Quản lý API Key
 if "GOOGLE_API_KEY" in st.secrets:
     MY_GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 else:
