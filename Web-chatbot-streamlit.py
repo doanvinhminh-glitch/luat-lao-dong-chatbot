@@ -21,7 +21,7 @@ st.title("⚖️ Trợ Lý Ảo Tư Vấn Luật Lao Động 2019")
 st.caption("Đồ án tốt nghiệp Khoa học Máy tính - Hệ thống RAG nâng cao")
 
 # 1. ĐIỀN THẲNG KEY CỦA BẠN VÀO ĐÂY ĐỂ CHẠY TRÊN VS CODE (GIỐNG CODE CŨ)
-MY_GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
+MY_GOOGLE_API_KEY = "GOOGLE_API_KEY"
 
 # 2. Dùng @st.cache_resource để NẠP MODEL ĐÚNG 1 LẦN 
 @st.cache_resource
@@ -69,23 +69,32 @@ if user_query := st.chat_input("Nhập câu hỏi của bạn về luật lao đ
         message_placeholder = st.empty()
         message_placeholder.markdown("⏳ Thưa bạn, tôi đang tra cứu và phân tích điều luật...")
         
-        # Áp dụng bộ lọc Sidebar vào cấu hình truy vấn của FAISS
-        search_kwargs = {"k": 7}
-        if selected_filter != "Tất cả":
-            search_kwargs["filter"] = {"chuong": selected_filter}
-            
-        retriever = vector_db.as_retriever(search_kwargs=search_kwargs)
-        
-        # TRUY VẤN DỮ LIỆU THÔ (Để lấy được metadata làm nguồn trích dẫn)
+        # --- ĐOẠN THAY THẾ MỚI: TRUY VẤN RỘNG VÀ HẬU LỌC BẰNG PYTHON ---
+        # Tạm thời nâng k=15 để FAISS hốt được phổ dữ liệu rộng hơn, tránh sót điều luật
+        retriever = vector_db.as_retriever(search_kwargs={"k": 15})
         retrieved_docs = retriever.invoke(user_query)
+        
+        # Tiến hành bóc tách và lọc dữ liệu dựa trên lựa chọn Sidebar
+        if selected_filter != "Tất cả":
+            chuong_keyword = selected_filter.split(":")[0].strip() # Lấy ra chữ "Chương II", "Chương XII"...
+            filtered_docs = []
+            for doc in retrieved_docs:
+                # Nếu từ khóa Chương nằm trong nội dung luật hoặc nằm trong trường chuong của metadata thì giữ lại
+                if (chuong_keyword in doc.page_content) or (chuong_keyword in doc.metadata.get("chuong", "")):
+                    filtered_docs.append(doc)
+            # Chỉ lấy tối đa 7 đoạn tốt nhất thỏa mãn bộ lọc để gửi cho Gemini
+            retrieved_docs = filtered_docs[:7]
+            
+        # Ép các đoạn văn bản hợp lệ thành chuỗi context
         context_text = "\n\n".join(doc.page_content for doc in retrieved_docs)
+        # --- KẾT THÚC ĐOẠN CẢI TIẾN ---
         
         # ĐÓNG GÓI LỊCH SỬ CHAT (Lấy các câu thoại cũ làm ngữ cảnh)
         history_text = ""
         for m in st.session_state.messages[-5:-1]: # Lấy tối đa 4 câu thoại gần nhất
             history_text += f"{m['role'].upper()}: {m['content']}\n"
         
-        # Gọi mô hình và truyền trực tiếp biến MY_GOOGLE_API_KEY ở dòng 20 vào
+        # Gọi mô hình và truyền trực tiếp biến MY_GOOGLE_API_KEY ở dòng 24 vào
         chain = prompt | ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0.2, google_api_key=MY_GOOGLE_API_KEY) | StrOutputParser()
         
         try:
