@@ -225,6 +225,6 @@ if active_query and active_query.strip():
                     st.caption(doc.page_content)
                     st.markdown("---")
                     
-       st.session_state.messages.append({"role": "assistant", "content": response, "sources": retrieved_docs})
+        st.session_state.messages.append({"role": "assistant", "content": response, "sources": retrieved_docs})
         st.rerun()
 
