@@ -107,15 +107,17 @@ for idx, message in enumerate(st.session_state.messages):
         st.markdown(message["content"])
         
         # Hiển thị nút đánh giá cho câu trả lời của Bot
+        # Hiển thị nút đánh giá cho câu trả lời của Bot
         if message["role"] == "assistant" and idx > 0:
             feedback_key = f"fb_{idx}"
             
+            # ĐỒNG BỘ NHAU TOÀN BỘ NHÃN TIẾNG VIỆT
             def on_feedback_change(k=feedback_key, m_idx=idx):
                 score = st.session_state[k]
                 st.session_state.feedbacks[k] = {
-                    "Câu hỏi": st.session_state.messages[m_idx-1]["content"],
-                    "Câu trả lời của AI": st.session_state.messages[m_idx]["content"],
-                    "Đánh giá": "👍 Hài lòng" if score == 1 else "👎 Chưa hài lòng"
+                    "Nội dung câu hỏi": st.session_state.messages[m_idx-1]["content"],
+                    "Câu trả lời từ AI": st.session_state.messages[m_idx]["content"],
+                    "Mức độ hài lòng": "👍 Hài lòng" if score == 1 else "👎 Chưa hài lòng"
                 }
                 st.toast(f"Cảm ơn bạn đã đánh giá câu trả lời này!", icon="📝")
 
