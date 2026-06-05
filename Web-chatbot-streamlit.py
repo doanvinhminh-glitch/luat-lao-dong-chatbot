@@ -107,34 +107,36 @@ for idx, message in enumerate(st.session_state.messages):
         st.markdown(message["content"])
         
         # Hiển thị nút đánh giá cho câu trả lời của Bot
-        # Hiển thị nút đánh giá cho câu trả lời của Bot
         if message["role"] == "assistant" and idx > 0:
             feedback_key = f"fb_{idx}"
             
-            # ĐỒNG BỘ NHAU TOÀN BỘ NHÃN TIẾNG VIỆT
+            # ĐÃ ĐƯỢC FIX LỖI: Định nghĩa rõ ràng các giá trị chữ và đồng bộ nhãn Tiếng Việt
             def on_feedback_change(k=feedback_key, m_idx=idx):
                 score = st.session_state[k]
+                
+                # Bóc tách trực tiếp nội dung từ m_idx của messages
+                cau_hoi_thuc_te = st.session_state.messages[m_idx-1]["content"].replace("\n", " ")
+                cau_tra_loi_thuc_te = st.session_state.messages[m_idx]["content"].replace("\n", " ")
+                danh_gia_thuc_te = "👍 Hài lòng" if score == 1 else "👎 Chưa hài lòng"
+                
+                # 1. Lưu vào bảng hiển thị trên Sidebar
                 st.session_state.feedbacks[k] = {
-                    "Nội dung câu hỏi": st.session_state.messages[m_idx-1]["content"],
-                    "Câu trả lời từ AI": st.session_state.messages[m_idx]["content"],
-                    "Mức độ hài lòng": "👍 Hài lòng" if score == 1 else "👎 Chưa hài lòng"
+                    "Nội dung câu hỏi": cau_hoi_thuc_te,
+                    "Câu trả lời từ AI": cau_tra_loi_thuc_te,
+                    "Mức độ hài lòng": danh_gia_thuc_te
                 }
-                st.session_state.feedbacks[k] = {
-                        "question": q_text,
-                        "answer": a_text,
-                        "rating": rating_text
-                }
-                # TỰ ĐỘNG GHI VÀO FILE CSV (Ghi đè/Nối tiếp liên tục)
+                
+                # 2. Đồng thời xuất lưu vĩnh viễn ra file CSV/Excel dưới máy
                 import csv
                 file_exists = os.path.isfile("user_feedbacks.csv")
                 with open("user_feedbacks.csv", mode="a", encoding="utf-8-sig", newline="") as f:
                     writer = csv.writer(f)
                     if not file_exists:
-                        writer.writerow(["Câu hỏi", "Câu trả lời của AI", "Đánh giá"]) # Ghi tiêu đề cột nếu file mới tạo
-                    writer.writerow([q_text, a_text, rating_text])
-        
-                st.toast(f"Hệ thống đã ghi nhận phản hồi vào file Excel thành công!", icon="💾")
-                st.toast(f"Cảm ơn bạn đã đánh giá câu trả lời này!", icon="📝")
+                        # Ghi tiêu đề cột đồng bộ
+                        writer.writerow(["Nội dung câu hỏi", "Câu trả lời từ AI", "Mức độ hài lòng"]) 
+                    writer.writerow([cau_hoi_thuc_te, cau_tra_loi_thuc_te, danh_gia_thuc_te])
+                
+                st.toast(f"Hệ thống đã ghi nhận và đồng bộ phản hồi!", icon="💾")
 
             st.feedback("thumbs", key=feedback_key, on_change=on_feedback_change)
 
@@ -157,7 +159,7 @@ if "faq_trigger" in st.session_state and st.session_state.faq_trigger is not Non
 elif user_query:
     active_query = user_query
 
-# 4. Chạy lõi xử lý RAG khi và chỉ khi active_query THỰC SỰ CÓ CHỮ (Không None, Không rỗng)
+# 4. Chạy lõi xử lý RAG khi có câu hỏi
 if active_query and active_query.strip():
     with st.chat_message("user"):
         st.markdown(active_query)
