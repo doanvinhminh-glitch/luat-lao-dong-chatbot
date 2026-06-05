@@ -104,11 +104,20 @@ for idx, message in enumerate(st.session_state.messages):
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         
+        # --- TÍNH NĂNG 4: HIỂN THỊ NGUỒN TRÍCH DẪN (Đọc từ bộ nhớ) ---
+        if message["role"] == "assistant" and "sources" in message and message["sources"]:
+            with st.expander("📚 Xem các phân đoạn Luật gốc được hệ thống đối chiếu (Nguồn trích dẫn)"):
+                for doc_idx, doc in enumerate(message["sources"]):
+                    source_name = doc.metadata.get("source", f"Phân đoạn luật thứ {doc_idx+1}")
+                    st.markdown(f"**[{doc_idx+1}] Cơ sở tài liệu: {source_name}**")
+                    st.caption(doc.page_content)
+                    st.markdown("---")
+        
         # Hiển thị nút đánh giá cho câu trả lời của Bot
         if message["role"] == "assistant" and idx > 0:
             feedback_key = f"fb_{idx}"
             
-            # ĐÃ ĐƯỢC FIX LỖI: Định nghĩa rõ ràng các giá trị chữ và đồng bộ nhãn Tiếng Việt
+            # Định nghĩa rõ ràng các giá trị chữ và đồng bộ nhãn Tiếng Việt
             def on_feedback_change(k=feedback_key, m_idx=idx):
                 score = st.session_state[k]
                 
@@ -117,14 +126,14 @@ for idx, message in enumerate(st.session_state.messages):
                 cau_tra_loi_thuc_te = st.session_state.messages[m_idx]["content"].replace("\n", " ")
                 danh_gia_thuc_te = "👍 Hài lòng" if score == 1 else "👎 Chưa hài lòng"
                 
-                # 1. Lưu vào bảng hiển thị trên Sidebar
+                # Lưu vào bảng hiển thị trên Sidebar
                 st.session_state.feedbacks[k] = {
                     "Nội dung câu hỏi": cau_hoi_thuc_te,
                     "Câu trả lời từ AI": cau_tra_loi_thuc_te,
                     "Mức độ hài lòng": danh_gia_thuc_te
                 }
                 
-                # 2. Đồng thời xuất lưu vĩnh viễn ra file CSV/Excel dưới máy
+                # Đồng thời xuất lưu vĩnh viễn ra file CSV/Excel dưới máy
                 import csv
                 file_exists = os.path.isfile("user_feedbacks.csv")
                 with open("user_feedbacks.csv", mode="a", encoding="utf-8-sig", newline="") as f:
@@ -157,7 +166,7 @@ if "faq_trigger" in st.session_state and st.session_state.faq_trigger is not Non
 elif user_query:
     active_query = user_query
 
-# 4. Chạy lõi xử lý RAG khi có câu hỏi
+# Chạy lõi xử lý RAG khi có câu hỏi
 if active_query and active_query.strip():
     with st.chat_message("user"):
         st.markdown(active_query)
@@ -207,16 +216,15 @@ if active_query and active_query.strip():
         
         message_placeholder.markdown(response)
         
-        # --- TÍNH NĂNG 4: HIỂN THỊ NGUỒN TRÍCH DẪN LUẬT ---
-        if retrieved_docs:
-            with st.expander("📚 Xem các phân đoạn Luật gốc được hệ thống đối chiếu (Nguồn trích dẫn)"):
-                for idx, doc in enumerate(retrieved_docs):
-                    source_name = doc.metadata.get("source", f"Phân đoạn luật thứ {idx+1}")
-                    st.markdown(f"**[{idx+1}] Cơ sở tài liệu: {source_name}**")
-                    st.caption(doc.page_content)
-                    st.markdown("---")
+        # --- TÍNH NĂNG : HIỂN THỊ NGUỒN TRÍCH DẪN LUẬT ---
+        ####if retrieved_docs:
+            ####with st.expander("📚 Xem các phân đoạn Luật gốc được hệ thống đối chiếu (Nguồn trích dẫn)"):
+                ####for idx, doc in enumerate(retrieved_docs):
+                    ####source_name = doc.metadata.get("source", f"Phân đoạn luật thứ {idx+1}")
+                    ####st.markdown(f"**[{idx+1}] Cơ sở tài liệu: {source_name}**")
+                    ####st.caption(doc.page_content)
+                   #### st.markdown("---")
                     
-        st.session_state.messages.append({"role": "assistant", "content": response})
+       st.session_state.messages.append({"role": "assistant", "content": response, "sources": retrieved_docs})
         st.rerun()
-
 
