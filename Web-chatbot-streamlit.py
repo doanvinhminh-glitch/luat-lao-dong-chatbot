@@ -31,7 +31,7 @@ CHAPTER_MAPPING = {
 }
 
 st.sidebar.header("⚖️ BỘ LỌC NÂNG CAO")
-st.sidebar.markdown("Giới hạn phạm vi tìm kiếm dữ liệu theo chương.")
+st.sidebar.markdown("⚠️ **Lưu ý:** Nếu sử dụng các nút bấm **FAQ nhanh** hoặc hỏi câu hỏi chương khác, vui lòng để bộ lọc là **'Tất cả'** để tránh bị chặn dữ liệu.")
 
 selected_filter = st.sidebar.selectbox(
     "Chọn Chương cần tra cứu:",
