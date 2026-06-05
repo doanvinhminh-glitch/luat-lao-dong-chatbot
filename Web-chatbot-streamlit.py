@@ -217,13 +217,13 @@ if active_query and active_query.strip():
         message_placeholder.markdown(response)
         
         # --- TÍNH NĂNG : HIỂN THỊ NGUỒN TRÍCH DẪN LUẬT ---
-        ####if retrieved_docs:
-            ####with st.expander("📚 Xem các phân đoạn Luật gốc được hệ thống đối chiếu (Nguồn trích dẫn)"):
-                ####for idx, doc in enumerate(retrieved_docs):
-                    ####source_name = doc.metadata.get("source", f"Phân đoạn luật thứ {idx+1}")
-                    ####st.markdown(f"**[{idx+1}] Cơ sở tài liệu: {source_name}**")
-                    ####st.caption(doc.page_content)
-                   #### st.markdown("---")
+        if retrieved_docs:
+            with st.expander("📚 Xem các phân đoạn Luật gốc được hệ thống đối chiếu (Nguồn trích dẫn)"):
+                for idx, doc in enumerate(retrieved_docs):
+                    source_name = doc.metadata.get("source", f"Phân đoạn luật thứ {idx+1}")
+                    st.markdown(f"**[{idx+1}] Cơ sở tài liệu: {source_name}**")
+                    st.caption(doc.page_content)
+                   st.markdown("---")
                     
        st.session_state.messages.append({"role": "assistant", "content": response, "sources": retrieved_docs})
         st.rerun()
