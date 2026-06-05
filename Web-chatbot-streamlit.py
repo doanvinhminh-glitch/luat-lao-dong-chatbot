@@ -144,6 +144,15 @@ if active_query:
     with st.chat_message("user"):
         st.markdown(active_query)
     st.session_state.messages.append({"role": "user", "content": active_query})
+        # --- HIỂN THỊ KẾT QUẢ ĐÁNH GIÁ ĐỂ LẤY SỐ LIỆU BÁO CÁO ---
+st.sidebar.markdown("---")
+with st.sidebar.expander("📊 Kho dữ liệu Phản hồi (HR Admin)"):
+    if st.session_state.feedbacks:
+        # Chuyển Dictionary thành danh sách để hiển thị dạng bảng
+        feedback_list = list(st.session_state.feedbacks.values())
+        st.data_editor(feedback_list, use_container_width=True)
+    else:
+        st.caption("Chưa có lượt đánh giá nào từ người dùng.")
 
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
